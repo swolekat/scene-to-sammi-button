@@ -4,9 +4,8 @@
 // window from here.
 
 import path from "path";
-import { app, Menu, ipcMain } from "electron";
+import {app, Menu, ipcMain} from "electron";
 import appMenuTemplate from "./menu/app_menu_template";
-import fileMenuTemplate from "./menu/file_menu_template";
 import devMenuTemplate from "./menu/dev_menu_template";
 import fs from "fs";
 import {init} from './main-window';
@@ -15,44 +14,52 @@ import {init} from './main-window';
 // in config/env_xxx.json file.
 import env from "env";
 
-const PATH_TO_SETTINGS_DIRECTORY = path.join(process.env.APPDATA, '../LocalLow/swolekat/vmc-replay/');
-
-if(!fs.existsSync(PATH_TO_SETTINGS_DIRECTORY)){
-  fs.mkdirSync(PATH_TO_SETTINGS_DIRECTORY);
-}
+const PATH_TO_OBS_SCENES = path.join(process.env.APPDATA, '../Roaming/obs-studio/basic/scenes/');
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
 if (env.name !== "production") {
-  const userDataPath = app.getPath("userData");
-  app.setPath("userData", `${userDataPath} (${env.name})`);
+    const userDataPath = app.getPath("userData");
+    app.setPath("userData", `${userDataPath} (${env.name})`);
 }
 
 const setApplicationMenu = () => {
-  const menus = [appMenuTemplate, fileMenuTemplate];
-  if (env.name !== "production") {
-    menus.push(devMenuTemplate);
-  }
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+    const menus = [appMenuTemplate];
+    if (env.name !== "production") {
+        menus.push(devMenuTemplate);
+    }
+    Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
 };
 
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
-  ipcMain.on("need-app-path", (event, arg) => {
-    event.reply("app-path", {
-      pathToSettingsDirectory: PATH_TO_SETTINGS_DIRECTORY,
+    ipcMain.on("need-obs-data", (event, arg) => {
+        const sceneCollections = fs.readdirSync(PATH_TO_OBS_SCENES)
+            .filter(f => !f.includes('.bak'));
+        const sceneCollectionData = sceneCollections.reduce((sum, sceneCollectionFileName) => {
+            const contents = JSON.parse(`${fs.readFileSync(path.join(PATH_TO_OBS_SCENES, sceneCollectionFileName))}`);
+            return [
+                ...sum,
+                {
+                    name: sceneCollectionFileName.replace('.json', ''),
+                    contents: contents,
+                }
+            ]
+        }, []);
+        event.reply("obs-data", {
+            sceneCollectionData,
+        });
     });
-  });
 };
 
 
 app.on("ready", () => {
-  setApplicationMenu();
-  initIpc();
-  init();
+    setApplicationMenu();
+    initIpc();
+    init();
 });
 
 app.on("window-all-closed", () => {
-  app.quit();
+    app.quit();
 });

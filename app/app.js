@@ -2,34 +2,136 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/paths.js":
-/*!**********************!*\
-  !*** ./src/paths.js ***!
-  \**********************/
+/***/ "./src/ui/copied-notification.js":
+/*!***************************************!*\
+  !*** ./src/ui/copied-notification.js ***!
+  \***************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   callbacks: () => (/* binding */ callbacks),
-/* harmony export */   directoryPath: () => (/* binding */ directoryPath)
+/* harmony export */   showNotification: () => (/* binding */ showNotification)
+/* harmony export */ });
+const element = document.getElementById('copied-notification');
+let myTimeout;
+const showNotification = name => {
+  if (myTimeout) {
+    clearTimeout(myTimeout);
+    myTimeout = undefined;
+  }
+  element.innerHTML = `Copied ${name} to clipboard!`;
+  element.className = 'in';
+  setTimeout(() => {
+    element.className = '';
+    myTimeout = undefined;
+  }, 10000);
+};
+
+/***/ }),
+
+/***/ "./src/ui/scene-buttons.js":
+/*!*********************************!*\
+  !*** ./src/ui/scene-buttons.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./state */ "./src/ui/state.js");
+/* harmony import */ var _copied_notification__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./copied-notification */ "./src/ui/copied-notification.js");
+
+
+const element = document.getElementById('scene-list');
+const renderButtons = () => {
+  element.innerHTML = '';
+  _state__WEBPACK_IMPORTED_MODULE_0__.scenes.forEach(name => {
+    const button = document.createElement('button');
+    button.className = 'scene-button';
+    button.innerHTML = name;
+    button.onclick = () => {
+      (0,_copied_notification__WEBPACK_IMPORTED_MODULE_1__.showNotification)(name);
+      // todo copy to clipboard here
+    };
+    element.appendChild(button);
+  });
+};
+(0,_state__WEBPACK_IMPORTED_MODULE_0__.addCallback)(renderButtons);
+renderButtons();
+
+/***/ }),
+
+/***/ "./src/ui/scene-collection-dropdown.js":
+/*!*********************************************!*\
+  !*** ./src/ui/scene-collection-dropdown.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./state */ "./src/ui/state.js");
+
+const element = document.getElementById('scene-collection-dropdown');
+element.onchange = e => {
+  (0,_state__WEBPACK_IMPORTED_MODULE_0__.setCurrentSceneCollection)(e.target.value);
+};
+const renderOptions = () => {
+  element.innerHTML = '';
+  _state__WEBPACK_IMPORTED_MODULE_0__.sceneCollections.forEach(({
+    name
+  }) => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.selected = name === _state__WEBPACK_IMPORTED_MODULE_0__.currentSceneCollection.name;
+    option.innerHTML = name;
+    element.appendChild(option);
+  });
+};
+(0,_state__WEBPACK_IMPORTED_MODULE_0__.addCallback)(renderOptions);
+renderOptions();
+
+/***/ }),
+
+/***/ "./src/ui/state.js":
+/*!*************************!*\
+  !*** ./src/ui/state.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   addCallback: () => (/* binding */ addCallback),
+/* harmony export */   currentSceneCollection: () => (/* binding */ currentSceneCollection),
+/* harmony export */   getScene: () => (/* binding */ getScene),
+/* harmony export */   sceneCollections: () => (/* binding */ sceneCollections),
+/* harmony export */   scenes: () => (/* binding */ scenes),
+/* harmony export */   setCurrentSceneCollection: () => (/* binding */ setCurrentSceneCollection)
 /* harmony export */ });
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ "electron");
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);
 
-let directoryPath = '';
 let callbacks = [];
+const addCallback = cb => {
+  callbacks.push(cb);
+};
+const notifySubscribers = () => {
+  callbacks.forEach(cb => cb());
+};
+let currentSceneCollection = undefined;
+let sceneCollections = [];
+let scenes = [];
+const setCurrentSceneCollection = sceneCollectionName => {
+  currentSceneCollection = sceneCollections.find(sc => sc.name === sceneCollectionName);
+  scenes = currentSceneCollection.contents.scene_order.map(s => s.name);
+  notifySubscribers();
+};
+const getScene = sceneName => {
+  // todo build up object that is { name, sources }
+};
+
 // We can communicate with main process through messages.
-electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.on("app-path", (event, paths) => {
-  const {
-    pathToSettingsDirectory
-  } = paths;
-  directoryPath = pathToSettingsDirectory;
-  if (callbacks.length !== 0) {
-    callbacks.forEach(cb => cb());
-    callbacks = [];
-  }
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.on("obs-data", (event, data) => {
+  sceneCollections = data.sceneCollectionData;
+  setCurrentSceneCollection(sceneCollections[0].name);
 });
-electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.send("need-app-path");
+electron__WEBPACK_IMPORTED_MODULE_0__.ipcRenderer.send("need-obs-data");
 
 /***/ }),
 
@@ -66,64 +168,68 @@ body {
 
 body {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   font-family: sans-serif;
   background: #343434;
   color: #fff;
   font-size: 16px;
-}
-
-.body {
-  display: flex;
-  width: 100%;
-  height: 100%;
-}
-
-.left-bar {
-  border-right: 1px solid #fff;
   padding: 20px;
-  width: 300px;
-  height: 100%;
+  position: relative;
 }
 
-.error {
-  color: #f00;
+.scene-collection-dropdown-label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #ef5f5f;
 }
 
-.left-bar section {
-  margin-bottom: 10px;
+#scene-collection-dropdown {
+  font-size: 24px;
+  width: 100%;
 }
 
-.left-bar section input {
+.section-divider {
+  width: 100%;
+  height: 2px;
+  background: #fff;
+  margin: 20px 0;
+}
+
+.scene-button {
+  font-size: 24px;
   display: block;
   width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  border-bottom: 2px solid #000;
 }
 
-.right-bar {
-  width: calc(100% - 301px);
-  height: 100%;
-  padding: 20px;
+.scene-button:hover {
+  background: rgba(255, 0, 0, 0.25);
+  cursor: pointer;
 }
 
-.replay {
-  margin-bottom: 20px;
-  background: #ff0000;
+#copied-notification {
+  font-size: 48px;
+  font-weight: bold;
+  color: #fff;
+  background: #f00;
+  position: fixed;
+  top: 100%;
+  left: 0;
+  width: 100%;
   padding: 10px;
-  border-radius: 10px;
+  text-align: center;
+  transform: translateY(0);
+  transition: all 300ms ease;
 }
 
-/*.name {*/
-/*  margin-bottom: 10px;*/
-/*}*/
-
-/*.button-row {*/
-/*  display: flex;*/
-/*}*/
-
-/*.button-row > * {*/
-/*  margin-right: 20px;*/
-/*}*/`, "",{"version":3,"sources":["webpack://./src/stylesheets/main.css"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;;AAEA;;EAEE,WAAW;EACX,YAAY;EACZ,SAAS;EACT,UAAU;AACZ;;AAEA;EACE,aAAa;EACb,uBAAuB;EACvB,mBAAmB;EACnB,uBAAuB;EACvB,mBAAmB;EACnB,WAAW;EACX,eAAe;AACjB;;AAEA;EACE,aAAa;EACb,WAAW;EACX,YAAY;AACd;;AAEA;EACE,4BAA4B;EAC5B,aAAa;EACb,YAAY;EACZ,YAAY;AACd;;AAEA;EACE,WAAW;AACb;;AAEA;EACE,mBAAmB;AACrB;;AAEA;EACE,cAAc;EACd,WAAW;AACb;;AAEA;EACE,yBAAyB;EACzB,YAAY;EACZ,aAAa;AACf;;AAEA;EACE,mBAAmB;EACnB,mBAAmB;EACnB,aAAa;EACb,mBAAmB;AACrB;;AAEA,UAAU;AACV,yBAAyB;AACzB,IAAI;;AAEJ,gBAAgB;AAChB,mBAAmB;AACnB,IAAI;;AAEJ,oBAAoB;AACpB,wBAAwB;AACxB,IAAI","sourcesContent":["*, *:before, *:after {\r\n  box-sizing: border-box;\r\n}\r\n\r\nhtml,\r\nbody {\r\n  width: 100%;\r\n  height: 100%;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\nbody {\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  font-family: sans-serif;\r\n  background: #343434;\r\n  color: #fff;\r\n  font-size: 16px;\r\n}\r\n\r\n.body {\r\n  display: flex;\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n\r\n.left-bar {\r\n  border-right: 1px solid #fff;\r\n  padding: 20px;\r\n  width: 300px;\r\n  height: 100%;\r\n}\r\n\r\n.error {\r\n  color: #f00;\r\n}\r\n\r\n.left-bar section {\r\n  margin-bottom: 10px;\r\n}\r\n\r\n.left-bar section input {\r\n  display: block;\r\n  width: 100%;\r\n}\r\n\r\n.right-bar {\r\n  width: calc(100% - 301px);\r\n  height: 100%;\r\n  padding: 20px;\r\n}\r\n\r\n.replay {\r\n  margin-bottom: 20px;\r\n  background: #ff0000;\r\n  padding: 10px;\r\n  border-radius: 10px;\r\n}\r\n\r\n/*.name {*/\r\n/*  margin-bottom: 10px;*/\r\n/*}*/\r\n\r\n/*.button-row {*/\r\n/*  display: flex;*/\r\n/*}*/\r\n\r\n/*.button-row > * {*/\r\n/*  margin-right: 20px;*/\r\n/*}*/"],"sourceRoot":""}]);
+#copied-notification.in {
+  transform: translateY(-100%);
+}`, "",{"version":3,"sources":["webpack://./src/stylesheets/main.css"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;;AAEA;;EAEE,WAAW;EACX,YAAY;EACZ,SAAS;EACT,UAAU;AACZ;;AAEA;EACE,aAAa;EACb,sBAAsB;EACtB,uBAAuB;EACvB,mBAAmB;EACnB,WAAW;EACX,eAAe;EACf,aAAa;EACb,kBAAkB;AACpB;;AAEA;EACE,kBAAkB;EAClB,iBAAiB;EACjB,yBAAyB;EACzB,cAAc;AAChB;;AAEA;EACE,eAAe;EACf,WAAW;AACb;;AAEA;EACE,WAAW;EACX,WAAW;EACX,gBAAgB;EAChB,cAAc;AAChB;;AAEA;EACE,eAAe;EACf,cAAc;EACd,WAAW;EACX,gBAAgB;EAChB,SAAS;EACT,uBAAuB;EACvB,WAAW;EACX,6BAA6B;AAC/B;;AAEA;EACE,iCAAiC;EACjC,eAAe;AACjB;;AAEA;EACE,eAAe;EACf,iBAAiB;EACjB,WAAW;EACX,gBAAgB;EAChB,eAAe;EACf,SAAS;EACT,OAAO;EACP,WAAW;EACX,aAAa;EACb,kBAAkB;EAClB,wBAAwB;EACxB,0BAA0B;AAC5B;;AAEA;EACE,4BAA4B;AAC9B","sourcesContent":["*, *:before, *:after {\r\n  box-sizing: border-box;\r\n}\r\n\r\nhtml,\r\nbody {\r\n  width: 100%;\r\n  height: 100%;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\nbody {\r\n  display: flex;\r\n  flex-direction: column;\r\n  font-family: sans-serif;\r\n  background: #343434;\r\n  color: #fff;\r\n  font-size: 16px;\r\n  padding: 20px;\r\n  position: relative;\r\n}\r\n\r\n.scene-collection-dropdown-label {\r\n  margin-bottom: 5px;\r\n  font-weight: bold;\r\n  text-transform: uppercase;\r\n  color: #ef5f5f;\r\n}\r\n\r\n#scene-collection-dropdown {\r\n  font-size: 24px;\r\n  width: 100%;\r\n}\r\n\r\n.section-divider {\r\n  width: 100%;\r\n  height: 2px;\r\n  background: #fff;\r\n  margin: 20px 0;\r\n}\r\n\r\n.scene-button {\r\n  font-size: 24px;\r\n  display: block;\r\n  width: 100%;\r\n  text-align: left;\r\n  border: 0;\r\n  background: transparent;\r\n  color: #fff;\r\n  border-bottom: 2px solid #000;\r\n}\r\n\r\n.scene-button:hover {\r\n  background: rgba(255, 0, 0, 0.25);\r\n  cursor: pointer;\r\n}\r\n\r\n#copied-notification {\r\n  font-size: 48px;\r\n  font-weight: bold;\r\n  color: #fff;\r\n  background: #f00;\r\n  position: fixed;\r\n  top: 100%;\r\n  left: 0;\r\n  width: 100%;\r\n  padding: 10px;\r\n  text-align: center;\r\n  transform: translateY(0);\r\n  transition: all 300ms ease;\r\n}\r\n\r\n#copied-notification.in {\r\n  transform: translateY(-100%);\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -659,11 +765,13 @@ var __webpack_exports__ = {};
   \********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _stylesheets_main_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stylesheets/main.css */ "./src/stylesheets/main.css");
-/* harmony import */ var _paths__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./paths */ "./src/paths.js");
+/* harmony import */ var _ui_state__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ui/state */ "./src/ui/state.js");
+/* harmony import */ var _ui_scene_collection_dropdown__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ui/scene-collection-dropdown */ "./src/ui/scene-collection-dropdown.js");
+/* harmony import */ var _ui_scene_buttons__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ui/scene-buttons */ "./src/ui/scene-buttons.js");
 
 
-// import './left-bar';
-// import './right-bar';
+
+
 })();
 
 /******/ })()

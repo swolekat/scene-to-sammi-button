@@ -199,69 +199,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./src/menu/file_menu_template.js":
-/*!****************************************!*\
-  !*** ./src/menu/file_menu_template.js ***!
-  \****************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ "electron");
-/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _main_window__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../main-window */ "./src/main-window.js");
-
-
-
-
-const PATH_TO_SETTINGS_DIRECTORY = path__WEBPACK_IMPORTED_MODULE_1___default().join(process.env.APPDATA, '../LocalLow/swolekat/vmc-replay/');
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  label: "File",
-  submenu: [{
-    label: "Open Saved File Location",
-    click: () => {
-      electron__WEBPACK_IMPORTED_MODULE_0__.shell.openPath(PATH_TO_SETTINGS_DIRECTORY);
-    }
-  }, {
-    type: "separator"
-  }, {
-    label: "Load from File",
-    click: () => {
-      electron__WEBPACK_IMPORTED_MODULE_0__.dialog.showOpenDialog({
-        filters: [{
-          name: 'JSON Files',
-          extensions: ['json']
-        }],
-        properties: ['openFile', 'multiSelections']
-      }).then(({
-        canceled,
-        filePaths
-      }) => {
-        if (canceled) {
-          return;
-        }
-        console.log(PATH_TO_SETTINGS_DIRECTORY);
-        console.log(filePaths.join(', '));
-        filePaths.forEach(path => {
-          const fileContents = fs__WEBPACK_IMPORTED_MODULE_2___default().readFileSync(path);
-          const fileNameParts = path.split('\\');
-          const fileName = fileNameParts[fileNameParts.length - 1];
-          fs__WEBPACK_IMPORTED_MODULE_2___default().writeFileSync(`${PATH_TO_SETTINGS_DIRECTORY}\\${fileName}`, fileContents);
-        });
-        (0,_main_window__WEBPACK_IMPORTED_MODULE_3__.refresh)();
-      });
-    }
-  }]
-});
-
-/***/ }),
-
 /***/ "electron":
 /*!***************************!*\
   !*** external "electron" ***!
@@ -402,12 +339,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! electron */ "electron");
 /* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _menu_app_menu_template__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./menu/app_menu_template */ "./src/menu/app_menu_template.js");
-/* harmony import */ var _menu_file_menu_template__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./menu/file_menu_template */ "./src/menu/file_menu_template.js");
-/* harmony import */ var _menu_dev_menu_template__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./menu/dev_menu_template */ "./src/menu/dev_menu_template.js");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _main_window__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./main-window */ "./src/main-window.js");
-/* harmony import */ var env__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! env */ "./config/env_development.json");
+/* harmony import */ var _menu_dev_menu_template__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./menu/dev_menu_template */ "./src/menu/dev_menu_template.js");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _main_window__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./main-window */ "./src/main-window.js");
+/* harmony import */ var env__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! env */ "./config/env_development.json");
 // This is main process of Electron, started as first thing when your
 // app starts. It runs through entire life of your application.
 // It doesn't have any windows which you can see on screen, but we can open
@@ -420,42 +356,46 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
 
-const PATH_TO_SETTINGS_DIRECTORY = path__WEBPACK_IMPORTED_MODULE_0___default().join(process.env.APPDATA, '../LocalLow/swolekat/vmc-replay/');
-if (!fs__WEBPACK_IMPORTED_MODULE_5___default().existsSync(PATH_TO_SETTINGS_DIRECTORY)) {
-  fs__WEBPACK_IMPORTED_MODULE_5___default().mkdirSync(PATH_TO_SETTINGS_DIRECTORY);
-}
+const PATH_TO_OBS_SCENES = path__WEBPACK_IMPORTED_MODULE_0___default().join(process.env.APPDATA, '../Roaming/obs-studio/basic/scenes/');
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
-if (env__WEBPACK_IMPORTED_MODULE_7__.name !== "production") {
+if (env__WEBPACK_IMPORTED_MODULE_6__.name !== "production") {
   const userDataPath = electron__WEBPACK_IMPORTED_MODULE_1__.app.getPath("userData");
-  electron__WEBPACK_IMPORTED_MODULE_1__.app.setPath("userData", `${userDataPath} (${env__WEBPACK_IMPORTED_MODULE_7__.name})`);
+  electron__WEBPACK_IMPORTED_MODULE_1__.app.setPath("userData", `${userDataPath} (${env__WEBPACK_IMPORTED_MODULE_6__.name})`);
 }
 const setApplicationMenu = () => {
-  const menus = [_menu_app_menu_template__WEBPACK_IMPORTED_MODULE_2__["default"], _menu_file_menu_template__WEBPACK_IMPORTED_MODULE_3__["default"]];
-  if (env__WEBPACK_IMPORTED_MODULE_7__.name !== "production") {
-    menus.push(_menu_dev_menu_template__WEBPACK_IMPORTED_MODULE_4__["default"]);
+  const menus = [_menu_app_menu_template__WEBPACK_IMPORTED_MODULE_2__["default"]];
+  if (env__WEBPACK_IMPORTED_MODULE_6__.name !== "production") {
+    menus.push(_menu_dev_menu_template__WEBPACK_IMPORTED_MODULE_3__["default"]);
   }
   electron__WEBPACK_IMPORTED_MODULE_1__.Menu.setApplicationMenu(electron__WEBPACK_IMPORTED_MODULE_1__.Menu.buildFromTemplate(menus));
 };
 
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
-  electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.on("need-app-path", (event, arg) => {
-    event.reply("app-path", {
-      pathToSettingsDirectory: PATH_TO_SETTINGS_DIRECTORY
+  electron__WEBPACK_IMPORTED_MODULE_1__.ipcMain.on("need-obs-data", (event, arg) => {
+    const sceneCollections = fs__WEBPACK_IMPORTED_MODULE_4___default().readdirSync(PATH_TO_OBS_SCENES).filter(f => !f.includes('.bak'));
+    const sceneCollectionData = sceneCollections.reduce((sum, sceneCollectionFileName) => {
+      const contents = JSON.parse(`${fs__WEBPACK_IMPORTED_MODULE_4___default().readFileSync(path__WEBPACK_IMPORTED_MODULE_0___default().join(PATH_TO_OBS_SCENES, sceneCollectionFileName))}`);
+      return [...sum, {
+        name: sceneCollectionFileName.replace('.json', ''),
+        contents: contents
+      }];
+    }, []);
+    event.reply("obs-data", {
+      sceneCollectionData
     });
   });
 };
 electron__WEBPACK_IMPORTED_MODULE_1__.app.on("ready", () => {
   setApplicationMenu();
   initIpc();
-  (0,_main_window__WEBPACK_IMPORTED_MODULE_6__.init)();
+  (0,_main_window__WEBPACK_IMPORTED_MODULE_5__.init)();
 });
 electron__WEBPACK_IMPORTED_MODULE_1__.app.on("window-all-closed", () => {
   electron__WEBPACK_IMPORTED_MODULE_1__.app.quit();

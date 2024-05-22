@@ -1,5 +1,5 @@
 import "./stylesheets/main.css";
 
-import './paths';
-// import './left-bar';
-// import './right-bar';
+import './ui/state';
+import './ui/scene-collection-dropdown';
+import './ui/scene-buttons';
