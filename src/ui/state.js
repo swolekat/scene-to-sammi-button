@@ -18,7 +18,20 @@ export const setCurrentSceneCollection = (sceneCollectionName) => {
     notifySubscribers();
 };
 export const getScene = (sceneName) => {
-    // todo build up object that is { name, sources }
+    const sceneObject = currentSceneCollection.contents.sources.find(source => source.name === sceneName);
+    const sourceNames = sceneObject.settings.items.map(i => i.name);
+    const sceneSources = currentSceneCollection.contents.sources.filter(source => sourceNames.includes(source.name));
+    const mappedSources = sceneSources.map(source => {
+        const matchingItem = sceneObject.settings.items.find(i => i.name === source.name);
+        return {
+            ...source,
+            ...matchingItem,
+        }
+    })
+    return {
+        name: sceneName,
+        sources: mappedSources,
+    }
 };
 
 

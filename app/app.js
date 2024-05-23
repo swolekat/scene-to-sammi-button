@@ -2,6 +2,118 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/ui/convert-scene-to-sammi-button.js":
+/*!*************************************************!*\
+  !*** ./src/ui/convert-scene-to-sammi-button.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   convertSceneToSammiButton: () => (/* binding */ convertSceneToSammiButton)
+/* harmony export */ });
+const createSceneCommand = scene => {
+  return {
+    "cmd": 50,
+    "obsid": "Main",
+    "b0": scene.name
+  };
+};
+const convertFilterToSammiCommand = (filter, sourceName) => {
+  return {
+    "b1": "",
+    "cmd": 65,
+    "obsid": "Main",
+    "b0": JSON.stringify({
+      "op": 6,
+      "d": {
+        "requestType": "CreateSourceFilter",
+        "requestData": {
+          sourceName,
+          "filterName": filter.name,
+          "filterKind": filter.versioned_id,
+          "filterSettings": filter.settings
+        }
+      }
+    }),
+    "b2": ""
+  };
+};
+const convertSourceToSammiCommands = (source, sceneName) => {
+  const filterCommands = source.filters.map(filter => convertFilterToSammiCommand(filter, source.name));
+  return [
+  // create source command
+  {
+    "b1": source.versioned_id,
+    "b3": JSON.stringify(source.settings),
+    "cmd": 47,
+    "obsid": "Main",
+    "b0": source.name,
+    "b2": sceneName,
+    "v0": 1
+  },
+  // set position
+  {
+    "b1": source.name,
+    "b3": `${source.pos.y}`,
+    "cmd": 22,
+    "obsid": "Main",
+    "b0": sceneName,
+    "b2": `${source.pos.x}`
+  },
+  // set scale
+  {
+    "b1": source.name,
+    "b3": `${source.scale.y}`,
+    "cmd": 32,
+    "obsid": "Main",
+    "b0": sceneName,
+    "b2": `${source.scale.x}`
+  }, ...filterCommands];
+};
+const convertSceneToSammiButton = scene => {
+  const sourceCommands = scene.sources.map(source => convertSourceToSammiCommands(source, scene.name));
+  const allCommands = [createSceneCommand(scene), ...sourceCommands.flat()];
+  const command_list = allCommands.map((command, index) => {
+    return {
+      ...command,
+      pos: index,
+      ms: index * 100,
+      sel: false,
+      dis: false,
+      xpan: 0
+    };
+  });
+  return {
+    color: 12632256,
+    persistent: true,
+    text: `Create\n${scene.name}\nScene`,
+    release_duration: 0,
+    queueable: false,
+    command_list,
+    press_type: 0,
+    x: 0,
+    is_transparent: false,
+    border: 2,
+    image: "",
+    triggers: [],
+    group_id: "",
+    overlappable: false,
+    init_variable: "",
+    width: 0.1,
+    button_id: `${scene.name}-create`,
+    button_duration: 0,
+    y: 0,
+    switch_deck: "",
+    height: 0.1,
+    release_list: [],
+    functions: 65,
+    stretch: false
+  };
+};
+
+/***/ }),
+
 /***/ "./src/ui/copied-notification.js":
 /*!***************************************!*\
   !*** ./src/ui/copied-notification.js ***!
@@ -38,6 +150,8 @@ const showNotification = name => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _state__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./state */ "./src/ui/state.js");
 /* harmony import */ var _copied_notification__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./copied-notification */ "./src/ui/copied-notification.js");
+/* harmony import */ var _convert_scene_to_sammi_button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./convert-scene-to-sammi-button */ "./src/ui/convert-scene-to-sammi-button.js");
+
 
 
 const element = document.getElementById('scene-list');
@@ -48,8 +162,11 @@ const renderButtons = () => {
     button.className = 'scene-button';
     button.innerHTML = name;
     button.onclick = () => {
+      const scene = (0,_state__WEBPACK_IMPORTED_MODULE_0__.getScene)(name);
+      const sammiButton = (0,_convert_scene_to_sammi_button__WEBPACK_IMPORTED_MODULE_2__.convertSceneToSammiButton)(scene);
+      // todo don't pretty print
+      navigator.clipboard.writeText(JSON.stringify(sammiButton, null, 2));
       (0,_copied_notification__WEBPACK_IMPORTED_MODULE_1__.showNotification)(name);
-      // todo copy to clipboard here
     };
     element.appendChild(button);
   });
@@ -123,7 +240,20 @@ const setCurrentSceneCollection = sceneCollectionName => {
   notifySubscribers();
 };
 const getScene = sceneName => {
-  // todo build up object that is { name, sources }
+  const sceneObject = currentSceneCollection.contents.sources.find(source => source.name === sceneName);
+  const sourceNames = sceneObject.settings.items.map(i => i.name);
+  const sceneSources = currentSceneCollection.contents.sources.filter(source => sourceNames.includes(source.name));
+  const mappedSources = sceneSources.map(source => {
+    const matchingItem = sceneObject.settings.items.find(i => i.name === source.name);
+    return {
+      ...source,
+      ...matchingItem
+    };
+  });
+  return {
+    name: sceneName,
+    sources: mappedSources
+  };
 };
 
 // We can communicate with main process through messages.

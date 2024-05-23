@@ -1,12 +1,10 @@
 # scene-to-sammi-button
 Small application to be able to make the json to a sammi button from a given obs scene.
 
-
-Todo:
-* run basic application
-* read obs scenes from json file
-* create sammi json
-* copy sammi json to clipboard
+## Limitations
+* doesn't support portable obs
+* doesn't support nested scenes
+* assumes your wanting to make a button for the Main obs
 
 
 ## How to install
