@@ -41,6 +41,13 @@ const convertSourceToSammiCommands = (source, sceneName) => {
             "b2": sceneName,
             "v0": 1
         },
+        // do timeout just to make sure the scene exists before setting position and scale and filters
+        {
+            "cmd": 190,
+            "obsid": "Main",
+            "vis": true,
+            "b0": "500"
+        },
         // set position
         {
             "b1": source.name,
@@ -74,7 +81,7 @@ export const convertSceneToSammiButton = (scene) => {
         return {
             ...command,
             pos: index,
-            ms: index * 100,
+            ms: 0,
             sel: false,
             dis: false,
             xpan: 0,
