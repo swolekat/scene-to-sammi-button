@@ -5,9 +5,10 @@
 
 import path from "path";
 import {app, Menu, ipcMain} from "electron";
+import fs from "fs";
+import find from 'find-process';
 import appMenuTemplate from "./menu/app_menu_template";
 import devMenuTemplate from "./menu/dev_menu_template";
-import fs from "fs";
 import {init} from './main-window';
 
 // Special module holding environment variables which you declared
@@ -15,6 +16,7 @@ import {init} from './main-window';
 import env from "env";
 
 const PATH_TO_OBS_SCENES = path.join(process.env.APPDATA, '../Roaming/obs-studio/basic/scenes/');
+const PORTABLE_CONFIG_PATH = 'config/obs-studio/basic/scenes/';
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
@@ -34,23 +36,42 @@ const setApplicationMenu = () => {
 
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
-    ipcMain.on("need-obs-data", (event) => {
+    ipcMain.on("need-obs-data", async (event) => {
+        const processes = await find('name', 'obs64');
+        const configPaths = [];
+        if(processes.length === 0){
+            configPaths.push(PATH_TO_OBS_SCENES);
+        }
+        processes.forEach(((p) => {
+            if(p.cmd.includes(' --p') || p.cmd.includes(' -p')){
+                const obsExePath = p.bin;
+                const rootPath = path.join(obsExePath, '..', '..', '..');
+                const configPath = path.join(rootPath, PORTABLE_CONFIG_PATH);
+                configPaths.push(configPath);
+                return;
+            }
+            configPaths.push(PATH_TO_OBS_SCENES);
+        }));
+        const uniqueConfigPaths = [...(new Set(configPaths))];
+        const sceneCollectionData = uniqueConfigPaths.map(p => {
+            const sceneCollections = fs.readdirSync(p)
+                .filter(f => !f.includes('.bak'));
+            return sceneCollections.reduce((sum, sceneCollectionFileName) => {
+                const contents = JSON.parse(`${fs.readFileSync(path.join(p, sceneCollectionFileName))}`);
+                return [
+                    ...sum,
+                    {
+                        name: sceneCollectionFileName.replace('.json', ''),
+                        contents: contents,
+                    }
+                ]
+            }, []);
+        }).flat();
+
         if(!fs.existsSync(PATH_TO_OBS_SCENES)){
-            // todo check for running obs process. Assume they are portable and get the scenes that way.
             return;
         }
-        const sceneCollections = fs.readdirSync(PATH_TO_OBS_SCENES)
-            .filter(f => !f.includes('.bak'));
-        const sceneCollectionData = sceneCollections.reduce((sum, sceneCollectionFileName) => {
-            const contents = JSON.parse(`${fs.readFileSync(path.join(PATH_TO_OBS_SCENES, sceneCollectionFileName))}`);
-            return [
-                ...sum,
-                {
-                    name: sceneCollectionFileName.replace('.json', ''),
-                    contents: contents,
-                }
-            ]
-        }, []);
+
         event.reply("obs-data", {
             sceneCollectionData,
         });

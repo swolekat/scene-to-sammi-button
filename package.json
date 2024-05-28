@@ -42,6 +42,7 @@
     "electron": "^30.0.6",
     "electron-builder": "^24.13.3",
     "electron-mocha": "^12.3.0",
+    "find-process": "^1.4.7",
     "mocha": "^10.4.0",
     "source-map-support": "^0.5.21",
     "spectron": "^19.0.0",

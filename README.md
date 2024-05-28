@@ -2,9 +2,10 @@
 Small application to be able to make the json to a sammi button from a given obs scene.
 
 ## Limitations
-* doesn't support portable obs
 * doesn't support nested scenes
 * assumes your wanting to make a button for the Main obs
+
+If you are running a portable OBS you need to either drag and drop your scene json files into the app or have OBS running.
 
 
 ## How to install

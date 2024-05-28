@@ -35,6 +35,10 @@ export const getScene = (sceneName) => {
 };
 
 const setData = (sceneCollectionData) => {
+    if(sceneCollectionData.length === 0){
+        clearData();
+        return;
+    }
     sceneCollections = sceneCollectionData;
     setCurrentSceneCollection(sceneCollections[0].name);
     const hasDataContentElement = document.getElementById('has-data-content');

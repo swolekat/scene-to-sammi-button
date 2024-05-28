@@ -28,6 +28,9 @@ const convertFilterToSammiCommand = (filter, sourceName) => {
 };
 
 const convertSourceToSammiCommands = (source, sceneName) => {
+    if(!source.filters){
+        return [];
+    }
     const filterCommands = source.filters.map(filter => convertFilterToSammiCommand(filter, source.name));
 
     return [
