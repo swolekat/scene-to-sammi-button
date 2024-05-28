@@ -34,7 +34,11 @@ const setApplicationMenu = () => {
 
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
-    ipcMain.on("need-obs-data", (event, arg) => {
+    ipcMain.on("need-obs-data", (event) => {
+        if(!fs.existsSync(PATH_TO_OBS_SCENES)){
+            // todo check for running obs process. Assume they are portable and get the scenes that way.
+            return;
+        }
         const sceneCollections = fs.readdirSync(PATH_TO_OBS_SCENES)
             .filter(f => !f.includes('.bak'));
         const sceneCollectionData = sceneCollections.reduce((sum, sceneCollectionFileName) => {
@@ -43,6 +47,22 @@ const initIpc = () => {
                 ...sum,
                 {
                     name: sceneCollectionFileName.replace('.json', ''),
+                    contents: contents,
+                }
+            ]
+        }, []);
+        event.reply("obs-data", {
+            sceneCollectionData,
+        });
+    });
+    ipcMain.on("process-files", (event, files) => {
+        const sceneCollectionData = files.reduce((sum, sceneCollectionFileName) => {
+            const contents = JSON.parse(`${fs.readFileSync(sceneCollectionFileName)}`);
+            const name = path.normalize(sceneCollectionFileName).split('\\').pop();
+            return [
+                ...sum,
+                {
+                    name: name.replace('.json', ''),
                     contents: contents,
                 }
             ]

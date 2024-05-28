@@ -11,14 +11,30 @@ body {
 }
 
 body {
-  display: flex;
-  flex-direction: column;
   font-family: sans-serif;
   background: #343434;
   color: #fff;
   font-size: 16px;
   padding: 20px;
   position: relative;
+}
+
+.has-data-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.no-data-content {
+  height: 100%;
+  width: 100%;
+  border: 10px dashed #aaa;
+  color: #aaa;
+  font-size: 48px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
 }
 
 .scene-collection-dropdown-label {
@@ -28,9 +44,20 @@ body {
   color: #ef5f5f;
 }
 
+.scene-collection-dropdown-and-clear-button {
+  display: flex;
+}
+
 #scene-collection-dropdown {
   font-size: 24px;
   width: 100%;
+}
+
+#load-json-button {
+  margin-left: 20px;
+  font-size: 24px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .section-divider {

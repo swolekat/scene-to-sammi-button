@@ -5,20 +5,30 @@
     <title>Scene to Sammi Button</title>
   </head>
   <body>
-    <div class="scene-collection-dropdown-wrapper">
-      <div class="scene-collection-dropdown-label">
-        Scene Collection
+    <div class="has-data-content" id="has-data-content" style="display: none;">
+      <div class="scene-collection-dropdown-wrapper">
+        <div class="scene-collection-dropdown-label">
+          Scene Collection
+        </div>
+        <div class="scene-collection-dropdown-and-clear-button">
+          <select id="scene-collection-dropdown"></select>
+          <button id="load-json-button">
+            Load JSON
+          </button>
+        </div>
       </div>
-      <select id="scene-collection-dropdown"></select>
-    </div>
-    <div class="section-divider"></div>
-    <div id="scene-list">
-      Scene List goes here
-    </div>
-    <div id="copied-notification">
-      Copied XD to clipboard.
-    </div>
+      <div class="section-divider"></div>
+      <div id="scene-list">
+        Scene List goes here
+      </div>
+      <div id="copied-notification">
+        Copied XD to clipboard.
+      </div>
 
-    <script src="app.js"></script>
+      <script src="app.js"></script>
+    </div>
+    <div class="no-data-content" id="no-data-content">
+        No data. Please drop a scene json file here
+    </div>
   </body>
 </html>
