@@ -1,9 +1,34 @@
-const createSceneCommand = (scene) => {
-    return {
-        "cmd": 50,
-        "obsid": "Main",
-        "b0": scene.name,
-    };
+const createSceneCommands = (scene) => {
+    return [
+        {
+            "cmd": 50,
+            "obsid": "Main",
+            "b0": scene.name,
+        },
+        // do timeout just to make sure the scene exists before setting filters
+        {
+            "cmd": 190,
+            "obsid": "Main",
+            "vis": true,
+            "b0": "500"
+        },
+    ];
+};
+
+const createSceneFiltersCommands = (scene) => {
+    if(!scene.filters){
+        return [];
+    }
+    return [
+        // do timeout just to make sure the scene exists before setting filters
+        {
+            "cmd": 190,
+            "obsid": "Main",
+            "vis": true,
+            "b0": "500"
+        },
+        ...(scene.filters.map(filter => convertFilterToSammiCommand(filter, scene.name)))
+    ];
 };
 
 const convertFilterToSammiCommand = (filter, sourceName) => {
@@ -28,10 +53,8 @@ const convertFilterToSammiCommand = (filter, sourceName) => {
 };
 
 const convertSourceToSammiCommands = (source, sceneName) => {
-    if(!source.filters){
-        return [];
-    }
-    const filterCommands = source.filters.map(filter => convertFilterToSammiCommand(filter, source.name));
+    const filters = source.filters || [];
+    const filterCommands = filters.map(filter => convertFilterToSammiCommand(filter, source.name));
 
     return [
         // create source command
@@ -77,7 +100,8 @@ const convertSourceToSammiCommands = (source, sceneName) => {
 export const convertSceneToSammiButton = (scene) => {
     const sourceCommands = scene.sources.map(source => convertSourceToSammiCommands(source, scene.name));
     const allCommands = [
-        createSceneCommand(scene),
+        ...createSceneCommands(scene),
+        ...createSceneFiltersCommands(scene),
         ...sourceCommands.flat(),
     ];
     const command_list = allCommands.map((command, index) => {

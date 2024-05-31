@@ -27,10 +27,11 @@ export const getScene = (sceneName) => {
             ...source,
             ...matchingItem,
         }
-    })
+    });
     return {
         name: sceneName,
         sources: mappedSources,
+        filters: sceneObject.filters,
     }
 };
 
