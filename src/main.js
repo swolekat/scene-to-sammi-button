@@ -37,18 +37,16 @@ const setApplicationMenu = () => {
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
     ipcMain.on("need-obs-data", async (event) => {
-        const obs64Processes = await find('name', 'obs64');
-        const obs64ExeProcesses = await find('name', 'obs64.exe');
-        const processes = [...obs64Processes, ...obs64ExeProcesses]
+        const processes = await find('name', 'obs64');
         const configPaths = [];
         if(processes.length === 0){
             configPaths.push(PATH_TO_OBS_SCENES);
         }
         processes.forEach(((p) => {
-            if(p.cmd.includes(' --p') || p.cmd.includes(' -p')){
-                const obsExePath = p.bin;
-                const rootPath = path.join(obsExePath, '..', '..', '..');
-                const configPath = path.join(rootPath, PORTABLE_CONFIG_PATH);
+            const obsExePath = p.bin;
+            const rootPath = path.join(obsExePath, '..', '..', '..');
+            const configPath = path.join(rootPath, PORTABLE_CONFIG_PATH);
+            if(fs.existsSync(configPath)){
                 configPaths.push(configPath);
                 return;
             }
