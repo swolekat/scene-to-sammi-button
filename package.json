@@ -1,6 +1,6 @@
 {
   "name": "scene-to-sammi-button",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Convert obs scenes to sammi buttons",
   "main": "app/main.js",
   "repository": {
