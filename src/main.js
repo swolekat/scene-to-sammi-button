@@ -37,46 +37,52 @@ const setApplicationMenu = () => {
 // We can communicate with our window (the renderer process) via messages.
 const initIpc = () => {
     ipcMain.on("need-obs-data", async (event) => {
-        const obs64Processes = await find('name', 'obs64');
-        const obs64ExeProcesses = await find('name', 'obs64.exe');
-        const processes = [...obs64Processes, ...obs64ExeProcesses]
-        const configPaths = [];
-        if(processes.length === 0){
-            configPaths.push(PATH_TO_OBS_SCENES);
-        }
-        processes.forEach(((p) => {
-            const obsExePath = p.bin;
-            const rootPath = path.join(obsExePath, '..', '..', '..');
-            const configPath = path.join(rootPath, PORTABLE_CONFIG_PATH);
-            if(fs.existsSync(configPath)){
-                configPaths.push(configPath);
-                return;
+        try {
+            const obs64Processes = await find('name', 'obs64');
+            const obs64ExeProcesses = await find('name', 'obs64.exe');
+            const processes = [...obs64Processes, ...obs64ExeProcesses]
+            const configPaths = [];
+            if(processes.length === 0){
+                configPaths.push(PATH_TO_OBS_SCENES);
             }
-            configPaths.push(PATH_TO_OBS_SCENES);
-        }));
-        const uniqueConfigPaths = [...(new Set(configPaths))];
-        const sceneCollectionData = uniqueConfigPaths.map(p => {
-            const sceneCollections = fs.readdirSync(p)
-                .filter(f => !f.includes('.bak'));
-            return sceneCollections.reduce((sum, sceneCollectionFileName) => {
-                const contents = JSON.parse(`${fs.readFileSync(path.join(p, sceneCollectionFileName))}`);
-                return [
-                    ...sum,
-                    {
-                        name: sceneCollectionFileName.replace('.json', ''),
-                        contents: contents,
-                    }
-                ]
-            }, []);
-        }).flat();
+            processes.forEach(((p) => {
+                const obsExePath = p.bin;
+                const rootPath = path.join(obsExePath, '..', '..', '..');
+                const configPath = path.join(rootPath, PORTABLE_CONFIG_PATH);
+                if(fs.existsSync(configPath)){
+                    configPaths.push(configPath);
+                    return;
+                }
+                configPaths.push(PATH_TO_OBS_SCENES);
+            }));
+            const uniqueConfigPaths = [...(new Set(configPaths))];
+            const sceneCollectionData = uniqueConfigPaths.map(p => {
+                if(!fs.existsSync(p)){
+                    return [];
+                }
+                const sceneCollections = fs.readdirSync(p)
+                    .filter(f => !f.includes('.bak'));
+                return sceneCollections.reduce((sum, sceneCollectionFileName) => {
+                    const contents = JSON.parse(`${fs.readFileSync(path.join(p, sceneCollectionFileName))}`);
+                    return [
+                        ...sum,
+                        {
+                            name: sceneCollectionFileName.replace('.json', ''),
+                            contents: contents,
+                        }
+                    ]
+                }, []);
+            }).flat();
 
-        if(!fs.existsSync(PATH_TO_OBS_SCENES)){
-            return;
+            event.reply("obs-data", {
+                sceneCollectionData,
+            });
+        } catch (e) {
+            event.reply("obs-data", {
+                error: e.message,
+            });
         }
 
-        event.reply("obs-data", {
-            sceneCollectionData,
-        });
     });
     ipcMain.on("process-files", (event, files) => {
         const sceneCollectionData = files.reduce((sum, sceneCollectionFileName) => {

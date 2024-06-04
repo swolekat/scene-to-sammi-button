@@ -58,7 +58,14 @@ const clearData = () => {
 
 // We can communicate with main process through messages.
 ipcRenderer.on("obs-data", (event, data) => {
+    if(data.error){
+        const loadingContentElement = document.getElementById('loading-content');
+        loadingContentElement.innerHTML = data.error;
+        return;
+    }
     setData(data.sceneCollectionData);
+    const loadingContentElement = document.getElementById('loading-content');
+    loadingContentElement.parentNode.removeChild(loadingContentElement);
 });
 ipcRenderer.send("need-obs-data");
 

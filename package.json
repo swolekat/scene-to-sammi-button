@@ -1,6 +1,6 @@
 {
   "name": "scene-to-sammi-button",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Convert obs scenes to sammi buttons",
   "main": "app/main.js",
   "repository": {
@@ -31,8 +31,8 @@
     "release": "webpack --config=build/webpack.app.config.js --env=production && electron-builder"
   },
   "dependencies": {
-    "fs-jetpack": "^5.1.0",
-    "find-process": "^1.4.7"
+    "find-process": "github:bryanwayb/find-process",
+    "fs-jetpack": "^5.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
