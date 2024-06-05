@@ -19,4 +19,4 @@ Select your scene collection. Then click on your desires scene. Then in sammi go
 ## Support
 This project is free for anyone to use and update. If you need to contact me specifically, stop by my stream at http://twitch.tv/swolekat or leave an issue on github.
 
-If you'd like to send a couple of bucks my way you can do so at my [ko-fi](https://ko-fi.com/Manage/).
+If you'd like to send a couple of bucks my way you can do so at my [ko-fi](https://ko-fi.com/swolekat).
