@@ -61,7 +61,7 @@ const initIpc = () => {
                     return [];
                 }
                 const sceneCollections = fs.readdirSync(p)
-                    .filter(f => !f.includes('.bak'));
+                    .filter(f => !f.includes('.bak') && f.endsWith('.json'));
                 return sceneCollections.reduce((sum, sceneCollectionFileName) => {
                     const contents = JSON.parse(`${fs.readFileSync(path.join(p, sceneCollectionFileName))}`);
                     return [
